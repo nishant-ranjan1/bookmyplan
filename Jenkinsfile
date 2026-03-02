@@ -121,7 +121,7 @@ pipeline {
             steps {
                 echo 'Cleaning Up Local Docker Images...'
                 sh '''
-                    docker rmi satyam88/bookmyplan:latest || echo "Image not found or already deleted"
+                    docker rmi nishantr/bookmyplan:latest || echo "Image not found or already deleted"
                     docker rmi bookmyplan:latest || echo "Image not found or already deleted"
                     docker rmi 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest || echo "Image not found or already deleted"
                     docker rmi 13.232.59.26:8085/bookmyplan:latest
