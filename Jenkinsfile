@@ -113,24 +113,18 @@ pipeline {
                 }
             }
         }
-    }
-
-    post {
-        always {
-            echo 'Cleaning up local Docker images...'
-            sh """
-              docker rmi ${IMAGE_LOCAL} || true
-              docker rmi ${IMAGE_DOCKERHUB} || true
-              docker rmi ${IMAGE_ECR} || true
-              docker rmi ${IMAGE_NEXUS} || true
-              docker image prune -f || true
-            """
-        }
-        success {
-            echo "✅ Pipeline completed successfully!"
-        }
-        failure {
-            echo "❌ Pipeline failed. Please check logs."
+        stage('Delete Docker Images from Jenkins Master') {
+            steps {
+                echo 'Cleaning Up Local Docker Images...'
+                sh '''
+                    docker rmi satyam88/bookmyplan:latest || echo "Image not found or already deleted"
+                    docker rmi bookmyplan:latest || echo "Image not found or already deleted"
+                    docker rmi 445842764710.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest || echo "Image not found or already deleted"
+                    docker rmi 3.108.228.196:8085/bookmyplan:latest
+                    docker image prune -f
+                '''
+                echo 'Local Docker Images Cleaned Up Successfully!'
+            }
         }
     }
 }
