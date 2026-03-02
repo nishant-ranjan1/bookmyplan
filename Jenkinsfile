@@ -11,7 +11,7 @@ pipeline {
     }
 
     environment {
-        APP_NAME = 'bookmyplan'
+        APP_NAME = "bookmyplan"
         VERSION  = "1.1.${BUILD_NUMBER}"
         IMAGE_LOCAL = "${APP_NAME}:latest"
         IMAGE_DOCKERHUB = "nishantr/${APP_NAME}:latest"
@@ -88,7 +88,7 @@ pipeline {
 
                 stage('Push to Docker Hub') {
                     steps {
-                        withCredentials([string(credentialsId: 'dockerhubCred', variable: 'DOCKERHUB_PASS')]) {
+                        withCredentials([string(credentialsId: 'dockerhubCred', variable: 'dockerhubCred')]) {
                             sh """
                               docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
                               docker push ${IMAGE_DOCKERHUB}
