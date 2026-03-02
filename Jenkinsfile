@@ -38,20 +38,22 @@ pipeline {
             }
         }
 
-#        stage('SonarQube Code Quality') {
-#            environment {
-#                scannerHome = tool 'qube'
-#            }
-#            steps {
-#                echo 'Running SonarQube scan...'
-#                withSonarQubeEnv('sonar-server') {
-#                sh 'mvn sonar:sonar'
-#                }
-#                timeout(time: 10, unit: 'MINUTES') {
-#                waitForQualityGate abortPipeline: true
-#                }
-#            }
-#        }
+/*
+        stage('SonarQube Code Quality') {
+            environment {
+                scannerHome = tool 'qube'
+            }
+            steps {
+                echo 'Running SonarQube scan...'
+                withSonarQubeEnv('sonar-server') {
+                sh 'mvn sonar:sonar'
+                }
+                timeout(time: 10, unit: 'MINUTES') {
+                waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+*/
 
         stage('Package Artifact') {
             steps {
