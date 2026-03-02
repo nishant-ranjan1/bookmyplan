@@ -11,7 +11,7 @@ pipeline {
     }
 
     environment {
-        APP_NAME = "bookmyplan"
+        APP_NAME = 'bookmyplan'
         VERSION  = "1.1.${BUILD_NUMBER}"
         IMAGE_LOCAL = "${APP_NAME}:latest"
         IMAGE_DOCKERHUB = "nishantr/${APP_NAME}:latest"
