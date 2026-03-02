@@ -73,7 +73,7 @@
                  steps {
                      script {
                          withCredentials([string(credentialsId: 'dockerhubCred', variable: 'dockerhubCred')]) {
-                             sh 'docker login docker.io -u nishantr -p ${dockerhubCred}'
+                             sh 'docker login docker.io -u nishantr -p Alibaba@420#420'
                              echo 'Pushing Docker Image to Docker Hub...'
                              sh 'docker push nishantr/bookmyplan:latest'
                              echo 'Docker Image Pushed to Docker Hub Successfully!'
@@ -100,7 +100,7 @@
                  steps {
                      script {
                          withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                             sh 'docker login http://13.232.59.26:8081/repository/bookmyplan/ -u admin -p ${PASSWORD}'
+                             sh 'docker login http://13.232.59.26:8081/repository/bookmyplan/ -u admin -p nishant1'
                              echo "Push Docker Image to Nexus : In Progress"
                              sh 'docker tag bookmyplan 13.232.59.26:8085/bookmyplan:latest'
                              sh 'docker push 13.232.59.26:8085/bookmyplan'
