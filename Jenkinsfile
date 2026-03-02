@@ -33,7 +33,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                echo 'Building and running test...'
+                echo 'Building and running tests...'
                 sh 'mvn clean verify'
             }
         }
@@ -45,10 +45,10 @@ pipeline {
 #            steps {
 #                echo 'Running SonarQube scan...'
 #                withSonarQubeEnv('sonar-server') {
-#                    sh 'mvn sonar:sonar'
+#                sh 'mvn sonar:sonar'
 #                }
 #                timeout(time: 10, unit: 'MINUTES') {
-#                    waitForQualityGate abortPipeline: true
+#                waitForQualityGate abortPipeline: true
 #                }
 #            }
 #        }
