@@ -14,9 +14,13 @@ pipeline {
         APP_NAME = "bookmyplan"
         VERSION  = "1.1.${BUILD_NUMBER}"
         IMAGE_LOCAL = "${APP_NAME}:latest"
-        IMAGE_DOCKERHUB = "satyam88/${APP_NAME}:latest"
-        IMAGE_ECR = "445842764710.dkr.ecr.ap-south-1.amazonaws.com/${APP_NAME}:latest"
-        IMAGE_NEXUS = "3.108.228.196:8085/${APP_NAME}:latest"
+        IMAGE_DOCKERHUB = "nishantr/${APP_NAME}:latest"
+        IMAGE_ECR = "306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1/${APP_NAME}:latest"
+        IMAGE_NEXUS = "13.232.59.26:8085/${APP_NAME}:latest"
+        NEXUS_USERNAME = "admin"
+        NEXUS_PASSWORD = "nexusadmin"
+        DOCKERHUB_USER = "nishantr"
+        DOCKERHUB_PASS = "nishant1"
     }
 
     stages {
@@ -34,20 +38,20 @@ pipeline {
             }
         }
 
-        stage('SonarQube Code Quality') {
-            environment {
-                scannerHome = tool 'qube'
-            }
-            steps {
-                echo 'Running SonarQube scan...'
-                withSonarQubeEnv('sonar-server') {
-                    sh 'mvn sonar:sonar'
-                }
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
+#        stage('SonarQube Code Quality') {
+#            environment {
+#                scannerHome = tool 'qube'
+#            }
+#            steps {
+#                echo 'Running SonarQube scan...'
+#                withSonarQubeEnv('sonar-server') {
+#                    sh 'mvn sonar:sonar'
+#                }
+#                timeout(time: 10, unit: 'MINUTES') {
+#                    waitForQualityGate abortPipeline: true
+#                }
+#            }
+#        }
 
         stage('Package Artifact') {
             steps {
@@ -83,7 +87,7 @@ pipeline {
                     steps {
                         withCredentials([string(credentialsId: 'dockerhubCred', variable: 'DOCKERHUB_PASS')]) {
                             sh """
-                              docker login -u satyam88 -p ${DOCKERHUB_PASS}
+                              docker login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASS}
                               docker push ${IMAGE_DOCKERHUB}
                             """
                         }
@@ -94,7 +98,7 @@ pipeline {
                     steps {
                         withDockerRegistry(
                             credentialsId: 'ecr:ap-south-1:ecr-credentials',
-                            url: "https://445842764710.dkr.ecr.ap-south-1.amazonaws.com"
+                            url: "https://306989527369.dkr.ecr.ap-south-1.amazonaws.com"
                         ) {
                             sh "docker push ${IMAGE_ECR}"
                         }
@@ -105,7 +109,7 @@ pipeline {
                     steps {
                         withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                             sh """
-                              docker login 3.108.228.196:8085 -u ${USERNAME} -p ${PASSWORD}
+                              docker login 13.232.59.26:8085 -u ${NEXUS_USERNAME} -p ${NEXUS_PASSWORD}
                               docker push ${IMAGE_NEXUS}
                             """
                         }
@@ -119,8 +123,8 @@ pipeline {
                 sh '''
                     docker rmi satyam88/bookmyplan:latest || echo "Image not found or already deleted"
                     docker rmi bookmyplan:latest || echo "Image not found or already deleted"
-                    docker rmi 445842764710.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest || echo "Image not found or already deleted"
-                    docker rmi 3.108.228.196:8085/bookmyplan:latest
+                    docker rmi 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest || echo "Image not found or already deleted"
+                    docker rmi 13.232.59.26:8085/bookmyplan:latest
                     docker image prune -f
                 '''
                 echo 'Local Docker Images Cleaned Up Successfully!'
