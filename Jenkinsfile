@@ -110,7 +110,7 @@ pipeline {
                 }
             }
         }
-        stage('Clean Up Local Docker Images') {
+        stage('Delete Docker Images from Jenkins Master') {
             steps {
                 echo 'Cleaning Up Local Docker Images...'
                 sh '''
