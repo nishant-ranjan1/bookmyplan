@@ -33,7 +33,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                echo 'Building and running tests...'
+                echo 'Building and running test...'
                 sh 'mvn clean verify'
             }
         }
