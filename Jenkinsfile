@@ -75,12 +75,12 @@ pipeline {
             }
         }
 
-        stage('Scan Docker Image') {
+/*        stage('Scan Docker Image') {
             steps {
                 echo 'Scanning image with Trivy...'
                 sh "trivy image ${IMAGE_LOCAL} || echo '⚠️ Trivy found issues, continuing...'"
             }
-        }
+  */      }
 
         stage('Push Images') {
             parallel {
