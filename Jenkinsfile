@@ -134,7 +134,7 @@
                          docker rmi 13.232.59.26:8085/bookmyplan:latest
                          docker image prune -f
                      '''
-                     echo 'Local Docker Images Cleaned Up Successfully!'
+                     echo 'Local Docker Images Cleaned Up Successfuly!'
                  }
              }
          }
