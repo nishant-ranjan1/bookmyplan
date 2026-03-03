@@ -64,7 +64,7 @@ pipeline {
             }
         }
 */
-        stage('Pushing to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
                 script {
                     // This block handles login and cleanup automatically
