@@ -1,141 +1,109 @@
-     pipeline {
+pipeline {
+    agent any
 
-         agent any
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
+    }
 
-         options {
-             buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
-         }
+    tools {
+        maven 'mvn_3.9.12'
+    }
 
-         tools {
-             maven 'mvn_3.9.12'
-         }
+    stages {
+        stage('Code Compilation') {
+            steps {
+                echo 'Starting Code Compilation...'
+                sh 'mvn clean compile'
+                echo 'Code Compilation Completed Successfully!'
+            }
+        }
 
-         stages {
-             stage('Code Compilation') {
-                 steps {
-                     echo 'Starting Code Compilation...'
-                     sh 'mvn clean compile'
-                     echo 'Code Compilation Completed Successfully!'
-                 }
-             }
+        stage('Code QA Execution') {
+            steps {
+                echo 'Running JUnit Test Cases...'
+                sh 'mvn clean test'
+                echo 'JUnit Test Cases Completed Successfully!'
+            }
+        }
 
-             stage('Code QA Execution') {
-                 steps {
-                     echo 'Running JUnit Test Cases...'
-                     sh 'mvn clean test'
-                     echo 'JUnit Test Cases Completed Successfully!'
-                 }
-             }
+        stage('Code Package') {
+            steps {
+                echo 'Creating JAR Artifact...'
+                sh 'mvn clean package'
+                sh "cp target/*.jar target/bookmyplan-1.1.${BUILD_NUMBER}.jar"
+                echo 'Artifact Created Successfully!'
+            }
+        }
 
-             // stage('SonarQube Code Quality') {
-             //     environment {
-             //         scannerHome = tool 'qube'
-             //     }
-             //     steps {
-             //         echo 'Starting SonarQube Code Quality Scan...'
-             //         withSonarQubeEnv('sonar-server') {
-             //             sh 'mvn sonar:sonar'
-             //         }
-             //         echo 'SonarQube Scan Completed. Checking Quality Gate...'
-             //         timeout(time: 10, unit: 'MINUTES') {
-             //             waitForQualityGate abortPipeline: true
-             //         }
-             //         echo 'Quality Gate Check Completed!'
-             //     }
-             // }
+        stage('Build & Tag Docker Image') {
+            steps {
+                echo 'Building Docker Image and Tagging...'
+                // Fixed: Combined tags into one build command for efficiency
+                sh "docker build -t nishantr/bookmyplan:latest -t bookmyplan:latest -t 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest ."
+                echo 'Docker Image Build Completed!'
+            }
+        }
 
-             stage('Code Package') {
-                 steps {
-                     echo 'Creating JAR Artifact...'
-                     sh 'mvn clean package'
-                     sh '''
-                         cp target/*.jar target/bookmyplan-1.1.${BUILD_NUMBER}.jar
-                     '''
-                     echo 'WAR Artifact Created Successfully!'
-                 }
-             }
+        stage('Docker Image Scanning') {
+            steps {
+                echo 'Scanning Docker Image with Trivy...'
+                echo 'Docker Image Scanning Completed!'
+            }
+        }
 
-             stage('Build & Tag Docker Image') {
-                 steps {
-                     echo 'Building Docker Image and Tagging...'
-                     sh "docker build -t nishantr/bookmyplan:latest -t bookmyplan:latest ."
-                     sh "docker build -t nishantr/bookmyplan:latest -t demodockerrepo1:latest ."
-                     echo 'Docker Image Build Completed!'
-                 }
-             }
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhubCred', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                        sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
+                        echo 'Pushing Docker Image to Docker Hub...'
+                        sh 'docker push nishantr/bookmyplan:latest'
+                        echo 'Docker Image Pushed to Docker Hub Successfully!'
+                    }
+                }
+            }
+        }
 
-             stage('Docker Image Scanning') {
-                 steps {
-                     echo 'Scanning Docker Image with Trivy...'
-                     echo 'Docker Image Scanning Completed!'
-                 }
-             }
-             stage('Push Docker Image to Docker Hub') {
-                // steps {
-                //     script {
-                //         withCredentials([string(credentialsId: 'dockerhubCred', variable: 'dockerhubCred')]) {
-                //             sh 'docker login docker.io -u nishantr -p Alibaba@420#420'
-                //             echo 'Pushing Docker Image to Docker Hub...'
-                //             sh 'docker push nishantr/bookmyplan:latest'
-                //             echo 'Docker Image Pushed to Docker Hub Successfully!'
-                //         }
-                //     }
-                //}
-             stage('Push Docker Image to Docker Hub') {
-                 steps {
-                     script {
-                             // Use usernamePassword to bind both username and password variables
-                             withCredentials([usernamePassword(credentialsId: 'dockerhubCred', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                                 // Login using the bound variables
-                                 sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
-                                 echo 'Pushing Docker Image to Docker Hub...'
-                                 sh 'docker push satyam88/bookmyplan:latest'
-                                 echo 'Docker Image Pushed to Docker Hub Successfully!'
-                             }
-                         }
-                     }
-                 }
+        stage('Push Docker Image to Amazon ECR') {
+            steps {
+                script {
+                    // Ensure the URL matches your ECR registry exactly
+                    withDockerRegistry([credentialsId: 'ecr:ap-south-1:ecr-credentials', url: "https://306989527369.dkr.ecr.ap-south-1.amazonaws.com"]) {
+                        echo 'Pushing Docker Image to ECR...'
+                        sh 'docker push 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest'
+                        echo 'Docker Image Pushed to Amazon ECR Successfully!'
+                    }
+                }
+            }
+        }
 
-             stage('Push Docker Image to Amazon ECR') {
-                 steps {
-                     script {
-                         withDockerRegistry([credentialsId: 'ecr:ap-south-1:ecr-credentials', url: "https://306989527369.dkr.ecr.ap-south-1.amazonaws.com"]) {
-                             echo 'Tagging and Pushing Docker Image to ECR...'
-                             sh '''
-                                 docker images
-                                 docker tag bookmyplan:latest 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest
-                                 docker push 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest
-                             '''
-                             echo 'Docker Image Pushed to Amazon ECR Successfully!'
-                         }
-                     }
-                 }
-             }
-             stage('Upload Docker Image to Nexus') {
-                 steps {
-                     script {
-                         withCredentials([usernamePassword(credentialsId: 'nexuscred', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                             sh 'docker login http://13.232.59.26:8081/repository/bookmyplan/ -u admin -p ${PASSWORD}'
-                             echo "Push Docker Image to Nexus : In Progress"
-                             sh 'docker tag bookmyplan 13.232.59.26:8085/bookmyplan:latest'
-                             sh 'docker push 13.232.59.26:8085/bookmyplan'
-                             echo "Push Docker Image to Nexus : Completed"
-                         }
-                     }
-                 }
-             }
-             stage('Clean Up Local Docker Images') {
-                 steps {
-                     echo 'Cleaning Up Local Docker Images...'
-                     sh '''
-                         docker rmi nishantr/bookmyplan:latest || echo "Image not found or already deleted"
-                         docker rmi bookmyplan:latest || echo "Image not found or already deleted"
-                         docker rmi 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest || echo "Image not found or already deleted"
-                         docker rmi 13.232.59.26:8085/bookmyplan:latest
-                         docker image prune -f
-                     '''
-                     echo 'Local Docker Images Cleaned Up Successfuly!'
-                 }
-             }
-         }
+        stage('Upload Docker Image to Nexus') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'nexuscred', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        // Use the Docker Connector port (8085) for login, not the UI port (8081)
+                        sh "docker login 13.232.59.26:8085 -u ${USERNAME} -p ${PASSWORD}"
+                        echo "Push Docker Image to Nexus: In Progress"
+                        sh 'docker tag bookmyplan:latest 13.232.59.26:8085/bookmyplan:latest'
+                        sh 'docker push 13.232.59.26:8085/bookmyplan:latest'
+                        echo "Push Docker Image to Nexus: Completed"
+                    }
+                }
+            }
+        }
 
+        stage('Clean Up Local Docker Images') {
+            steps {
+                echo 'Cleaning Up Local Docker Images...'
+                sh '''
+                    docker rmi nishantr/bookmyplan:latest || true
+                    docker rmi bookmyplan:latest || true
+                    docker rmi 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest || true
+                    docker rmi 13.232.59.26:8085/bookmyplan:latest || true
+                    docker image prune -f
+                '''
+                echo 'Local Docker Images Cleaned Up Successfully!'
+            }
+        }
+    }
+}
