@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo 'Building Docker Image and Tagging...'
                 // Fixed: Combined tags into one build command for efficiency
-                sh "docker build -t nishantr/bookmyplan:latest -t bookmyplan:latest -t 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest ."
+                sh "docker build -t nishantr/bookmyplan:latest -t bookmyplan:latest -t 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest ."
                 echo 'Docker Image Build Completed!'
             }
         }
@@ -70,7 +70,7 @@ pipeline {
                     // Ensure the URL matches your ECR registry exactly
                     withDockerRegistry([credentialsId: 'ecr:ap-south-1:ecr-credentials', url: "https://306989527369.dkr.ecr.ap-south-1.amazonaws.com"]) {
                         echo 'Pushing Docker Image to ECR...'
-                        sh 'docker push 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest'
+                        sh 'docker push 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest'
                         echo 'Docker Image Pushed to Amazon ECR Successfully!'
                     }
                 }
@@ -82,10 +82,10 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexuscred', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         // Use the Docker Connector port (8085) for login, not the UI port (8081)
-                        sh "docker login 13.232.59.26:8085 -u ${USERNAME} -p ${PASSWORD}"
+                        sh "docker login 65.0.76.168:8085 -u ${USERNAME} -p ${PASSWORD}"
                         echo "Push Docker Image to Nexus: In Progress"
-                        sh 'docker tag bookmyplan:latest 13.232.59.26:8085/bookmyplan:latest'
-                        sh 'docker push 13.232.59.26:8085/bookmyplan:latest'
+                        sh 'docker tag bookmyplan:latest 65.0.76.168:8085/bookmyplan:latest'
+                        sh 'docker push 65.0.76.168:8085/bookmyplan:latest'
                         echo "Push Docker Image to Nexus: Completed"
                     }
                 }
@@ -98,8 +98,8 @@ pipeline {
                 sh '''
                     docker rmi nishantr/bookmyplan:latest || true
                     docker rmi bookmyplan:latest || true
-                    docker rmi 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest || true
-                    docker rmi 13.232.59.26:8085/bookmyplan:latest || true
+                    docker rmi 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest || true
+                    docker rmi 65.0.76.168:8085/bookmyplan:latest || true
                     docker image prune -f
                 '''
                 echo 'Local Docker Images Cleaned Up Successfully!'
