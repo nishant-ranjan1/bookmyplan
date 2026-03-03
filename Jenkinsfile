@@ -50,7 +50,7 @@ pipeline {
                 echo 'Docker Image Scanning Completed!'
             }
         }
-
+/*
         stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
@@ -59,6 +59,18 @@ pipeline {
                         echo 'Pushing Docker Image to Docker Hub...'
                         sh 'docker push nishantr/bookmyplan:latest'
                         echo 'Docker Image Pushed to Docker Hub Successfully!'
+                    }
+                }
+            }
+        }
+*/
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    // This block handles login and cleanup automatically
+                    docker.withRegistry('https://index.docker.io', 'dockerhubCred') {
+                        echo 'Pushing Docker Image...'
+                        sh 'docker push nishantr/bookmyplan:latest'
                     }
                 }
             }
