@@ -76,7 +76,7 @@ pipeline {
             }
         }
 */
-        stage('Pushing Docker Image to Amazon ECR') {
+        stage('Push Docker Image to Amazon ECR') {
             steps {
                 script {
                     // Ensure the URL matches your ECR registry exactly
