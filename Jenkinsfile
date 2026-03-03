@@ -137,4 +137,5 @@
                      echo 'Local Docker Images Cleaned Up Successfuly!'
                  }
              }
+         }
 
