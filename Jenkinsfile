@@ -68,7 +68,7 @@ pipeline {
             steps {
                 script {
                     // This block handles login and cleanup automatically
-                    docker.withRegistry('https://index.docker.io', 'dockerhubCred') {
+                    docker.withRegistry('https://index.docker.io','dockerhubCred') {
                         echo 'Pushing Docker Image...'
                         sh 'docker push nishantr/bookmyplan:latest'
                     }
