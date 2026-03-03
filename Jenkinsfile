@@ -46,7 +46,7 @@
 
              stage('Code Package') {
                  steps {
-                     echo 'Creating WAR Artifact...'
+                     echo 'Creating JAR Artifact...'
                      sh 'mvn clean package'
                      sh '''
                          cp target/*.jar target/bookmyplan-1.1.${BUILD_NUMBER}.jar
@@ -59,6 +59,7 @@
                  steps {
                      echo 'Building Docker Image and Tagging...'
                      sh "docker build -t nishantr/bookmyplan:latest -t bookmyplan:latest ."
+                     sh "docker build -t nishantr/bookmyplan:latest -t demodockerrepo1:latest ."
                      echo 'Docker Image Build Completed!'
                  }
              }
@@ -70,17 +71,31 @@
                  }
              }
              stage('Push Docker Image to Docker Hub') {
+                // steps {
+                //     script {
+                //         withCredentials([string(credentialsId: 'dockerhubCred', variable: 'dockerhubCred')]) {
+                //             sh 'docker login docker.io -u nishantr -p Alibaba@420#420'
+                //             echo 'Pushing Docker Image to Docker Hub...'
+                //             sh 'docker push nishantr/bookmyplan:latest'
+                //             echo 'Docker Image Pushed to Docker Hub Successfully!'
+                //         }
+                //     }
+                //}
+             stage('Push Docker Image to Docker Hub') {
                  steps {
                      script {
-                         withCredentials([string(credentialsId: 'dockerhubCred', variable: 'dockerhubCred')]) {
-                             sh 'docker login docker.io -u nishantr -p Alibaba@420#420'
-                             echo 'Pushing Docker Image to Docker Hub...'
-                             sh 'docker push nishantr/bookmyplan:latest'
-                             echo 'Docker Image Pushed to Docker Hub Successfully!'
+                             // Use usernamePassword to bind both username and password variables
+                             withCredentials([usernamePassword(credentialsId: 'dockerhubCred', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                                 // Login using the bound variables
+                                 sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
+                                 echo 'Pushing Docker Image to Docker Hub...'
+                                 sh 'docker push satyam88/bookmyplan:latest'
+                                 echo 'Docker Image Pushed to Docker Hub Successfully!'
+                             }
                          }
                      }
                  }
-             }
+
              stage('Push Docker Image to Amazon ECR') {
                  steps {
                      script {
@@ -88,7 +103,7 @@
                              echo 'Tagging and Pushing Docker Image to ECR...'
                              sh '''
                                  docker images
-                                 docker tag bookmyplan:latest 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest
+                                 docker tag bookmyplan:latest 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest
                                  docker push 306989527369.dkr.ecr.ap-south-1.amazonaws.com/bookmyplan:latest
                              '''
                              echo 'Docker Image Pushed to Amazon ECR Successfully!'
@@ -99,8 +114,8 @@
              stage('Upload Docker Image to Nexus') {
                  steps {
                      script {
-                         withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                             sh 'docker login http://13.232.59.26:8081/repository/bookmyplan/ -u admin -p nishant1'
+                         withCredentials([usernamePassword(credentialsId: 'nexuscred', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                             sh 'docker login http://13.232.59.26:8081/repository/bookmyplan/ -u admin -p ${PASSWORD}'
                              echo "Push Docker Image to Nexus : In Progress"
                              sh 'docker tag bookmyplan 13.232.59.26:8085/bookmyplan:latest'
                              sh 'docker push 13.232.59.26:8085/bookmyplan'
