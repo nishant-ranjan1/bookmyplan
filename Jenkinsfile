@@ -50,7 +50,7 @@ pipeline {
                 echo 'Docker Image Scanning Completed!'
             }
         }
-/*
+
         stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
@@ -63,8 +63,8 @@ pipeline {
                 }
             }
         }
-*/
-        stage('Push to Docker Hub') {
+
+/*        stage('Pushing to Docker Hub') {
             steps {
                 script {
                     // This block handles login and cleanup automatically
@@ -75,7 +75,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Pushing Docker Image to Amazon ECR') {
             steps {
                 script {
