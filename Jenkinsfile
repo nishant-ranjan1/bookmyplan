@@ -67,7 +67,7 @@ pipeline {
         stage('Pushing to Docker Hub') {
             steps {
                 script {
-                    // This block handle login and cleanup automatically
+                    // This block handles login and cleanup automatically
                     docker.withRegistry('https://index.docker.io', 'dockerhubCred') {
                         echo 'Pushing Docker Image...'
                         sh 'docker push nishantr/bookmyplan:latest'
@@ -76,7 +76,7 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image to Amazon ECR') {
+        stage('Pushing Docker Image to Amazon ECR') {
             steps {
                 script {
                     // Ensure the URL matches your ECR registry exactly
