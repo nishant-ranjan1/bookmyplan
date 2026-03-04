@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     options {
-        buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))  // To discard the build after certains number of days
+        buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
     }
 
     tools {
@@ -14,7 +14,6 @@ pipeline {
             steps {
                 echo 'Starting Code Compilation...'
                 sh 'mvn clean compile'
-                echo 'Code Compilation Completed Successfully!'
             }
         }
 
@@ -22,14 +21,10 @@ pipeline {
             steps {
                 echo 'Running JUnit Test Cases...'
                 sh 'mvn clean test'
-                echo 'JUnit Test Cases Completed Successfully!'
             }
         }
 
-       stage('SonarQube Code Quality') {
-            environment {
-                scannerHome = tool 'qube'
-            }
+        stage('SonarQube Code Quality') {
             steps {
                 echo 'Running SonarQube scan...'
                 withSonarQubeEnv('sonar-server') {
@@ -45,56 +40,23 @@ pipeline {
             steps {
                 echo 'Creating JAR Artifact...'
                 sh 'mvn clean package'
-                sh "cp target/*.jar target/bookmyplan-1.1.${BUILD_NUMBER}.jar" // ${BUILD_NUMBER} is a variable and automatically stores values from jenkins number of time the build has run
-                echo 'Artifact Created Successfully!'
+                sh "cp target/*.jar target/bookmyplan-1.1.${BUILD_NUMBER}.jar"
             }
         }
-/*
-        stage('Sonarqube') {
-            environment {
-                scannerHome = tool 'qube'
-            }
+
+        stage('Build & Tag Docker Image') {
             steps {
-                withSonarQubeEnv('sonar-server') {
-                    sh "${scannerHome}/bin/sonar-scanner"
-                    sh 'mvn sonar:sonar'
-                }
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+                echo 'Building Docker Image...'
+                // Using --no-cache to fix the overlay2 error you encountered
+                sh "docker build --no-cache -t nishantr/bookmyplan:latest -t bookmyplan:latest -t 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest ."
             }
         }
-*/
-         stage('Build & Tag Docker Image') {
+
+        stage('Docker Image Scanning') {
             steps {
-                echo 'Building Docker Image and Tagging...'
-                // Fixed: Combined tags into one build command for efficiency
-                // Creating three images with tags, // Creating two images with tags - bookmyplan:latest is for dockerhub and 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest is for AWS ECR
-                // bookmyplan is name of the repo created on dockerhub and demodockerrepo1 is the name of the repo created on AWS ECR
-                //--no-cache is used to skip cache as i accidently deleted some files in the overlay2
-                sh "docker build --no-cache -t nishantr/bookmyplan:latest -t bookmyplan:latest -t 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest ." // 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1 is Repository URI under summary in AWS ECR
-                echo 'Docker Image Build Completed!'
-            }
-        }
-/*
-        stage('Docker Image Scanning by Trivy') {
-            steps {
-                echo 'Scanning Docker Image with Trivy...'
-                sh 'trivy image nishantr/bookmyplan:latest'
-                echo 'Docker Image Scanning Completed!'
-            }
-        }
-*/
-        stage('Docker Image Scanning using Trivy') {
-            steps {
-                echo 'Scanning Docker Image with Trivy...'
-                // env.WORKSPACE is a built-in Jenkins variable for your job's directory
-                //sh "export TMPDIR=${env.WORKSPACE} && trivy image nishantr/bookmyplan:latest"
-                //sh "trivy clean --all" // Clears all local vulnerability DBs and layer caches
-                //Jenkins WORKSPACE dir will be used as temp and java db update will be skipped
-                //sh "export TMPDIR=${env.WORKSPACE} && trivy image --skip-java-db-update --scanners vuln nishantr/bookmyplan:latest"
-                //sh "export TMPDIR=${env.WORKSPACE} && trivy image --parallel 1 nishantr/bookmyplan:latest"
-                echo 'Docker Image Scanning Completed!!'
+                echo 'Trivy Scanning is currently DISABLED in script.'
+                // All sh commands are removed/commented correctly here
+                // sh "trivy image ..."
             }
         }
 
@@ -103,53 +65,16 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockerhubCred', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                         sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
-                        // DOCKER_USER and DOCKER_PASS values comes from the docker related plugins, Also, need to add docker creds in the Global credentials of the Jenkins(use username and password)
-                        // 'dockerhubCred' is the id used in jenkins credentials for dockerhub
-                        echo 'Pushing Docker Image to Docker Hub...'
-                        sh 'docker push nishantr/bookmyplan:latest'
-                        echo 'Docker Image Pushed to Docker Hub Successfully!'
-                    }
-                }
-            }
-        }
-
-/*
-       stage('Pushing to Docker Hub') {
-            steps {
-                script {
-                    // This block handles login and cleanup automatically
-                    docker.withRegistry('https://index.docker.io','dockerhubCred') {
-                        echo 'Pushing Docker Image...'
                         sh 'docker push nishantr/bookmyplan:latest'
                     }
                 }
             }
         }
-
-       stage('Push Docker Image to Amazon ECR') {
-            steps {
-                script {
-                    // Ensure the URL matches your ECR registry exactly and demodockerrepo1 is the name of the repo in the AWS ECR
-                    // This comes from Amazon ECR Plugin and AWS credentials pluginns
-                    // ecr-credentials is the id used in the jenkins credentials for AWS  ECR credentials
-                    // We need to create a role with admin access and attach it to the jenkins master instance and an IAM user with EC2FullAccess whose access key and secret access key will be needed in the jenkins credentials
-                    withDockerRegistry([credentialsId: 'ecr:ap-south-1:ecr-credentials', url: "https://306989527369.dkr.ecr.ap-south-1.amazonaws.com"]) {
-                        echo 'Pushing Docker Image to ECR...'
-                        sh 'docker push 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest'
-                        echo 'Docker Image Pushed to Amazon ECR Successfully!'
-                    }
-                }
-            }
-       }
-*/
 
         stage('Push Docker Image to Amazon ECR') {
             steps {
                 script {
-                    // Ensure the URL matches your ECR registry exactly and demodockerrepo1 is the name of the repo in the AWS ECR
-                    // This comes from Amazon ECR Plugin and AWS credentials pluginns
-                    // ecr-credentials is the id used in the jenkins credentials for AWS  ECR credentials
-                    // We need to create a role with admin access and attach it to the jenkins master instance and an IAM user with EC2FullAccess whose access key and secret access key will be needed in the jenkins credentials
+                    // Corrected closing braces for this block
                     withDockerRegistry([credentialsId: 'ecr:ap-south-1:ecr-credentials', url: "https://306989527369.dkr.ecr.ap-south-1.amazonaws.com"]) {
                         sh 'docker push 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest'
                     }
@@ -157,34 +82,14 @@ pipeline {
             }
         }
 
-/*
-       stage('Uploading Docker Image to Nexus') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'nexuscred', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        // Use the Docker Connector port (8085) for login, not the UI port (8081)
-                        // 65.0.76.168 is Nexus instance IP
-                        sh "docker login 65.0.76.168:8085 -u ${USERNAME} -p ${PASSWORD}"
-                        echo "Push Docker Image to Nexus: In Progress"
-                        sh 'docker tag bookmyplan:latest 65.0.76.168:8085/bookmyplan:latest'
-                        sh 'docker push 65.0.76.168:8085/bookmyplan:latest'
-                        echo "Push Docker Image to Nexus: Completed"
-                    }
-                }
-            }
-        }
-*/
         stage('Clean Up Local Docker Images') {
             steps {
-                echo 'Cleaning Up Local Docker Images...'
                 sh '''
                     docker rmi nishantr/bookmyplan:latest || true
                     docker rmi bookmyplan:latest || true
                     docker rmi 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest || true
-                    docker rmi 65.0.76.168:8085/bookmyplan:latest || true
                     docker image prune -f
                 '''
-                echo 'Local Docker Images Cleaned Up Successfully!'
             }
         }
     }
