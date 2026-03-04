@@ -82,7 +82,7 @@ pipeline {
             }
         }
 
-        stage('Clean Up Local Docker Images') {
+        stage('Cleaning Up Local Docker Images') {
             steps {
                 sh '''
                     docker rmi nishantr/bookmyplan:latest || true
