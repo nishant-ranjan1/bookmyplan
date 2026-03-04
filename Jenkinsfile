@@ -58,7 +58,8 @@ pipeline {
             steps {
                 echo 'Scanning Docker Image with Trivy...'
                 // env.WORKSPACE is a built-in Jenkins variable for your job's directory
-                sh "export TMPDIR=${env.WORKSPACE} && trivy image nishantr/bookmyplan:latest"
+                //sh "export TMPDIR=${env.WORKSPACE} && trivy image nishantr/bookmyplan:latest"
+                sh "export TMPDIR=${env.WORKSPACE} && trivy image --parallel 1 nishantr/bookmyplan:latest"
                 echo 'Docker Image Scanning Completed!'
             }
         }
