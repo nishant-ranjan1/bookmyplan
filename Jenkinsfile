@@ -60,7 +60,7 @@ pipeline {
                 // env.WORKSPACE is a built-in Jenkins variable for your job's directory
                 //sh "export TMPDIR=${env.WORKSPACE} && trivy image nishantr/bookmyplan:latest"
                 sh "trivy clean --all" // Clears all local vulnerability DBs and layer caches
-                sh "trivy image --vuln-type os,library --scanners vuln nishantr/bookmyplan:latest"
+                sh "export TMPDIR=${env.WORKSPACE} && trivy image --skip-java-db-update --scanners vuln nishantr/bookmyplan:latest"
                 //sh "export TMPDIR=${env.WORKSPACE} && trivy image --parallel 1 nishantr/bookmyplan:latest"
                 echo 'Docker Image Scanning Completed!'
             }
