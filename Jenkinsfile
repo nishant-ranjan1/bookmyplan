@@ -45,11 +45,20 @@ pipeline {
                 echo 'Docker Image Build Completed!'
             }
         }
-
-        stage('Docker Image Scanning') {
+/*
+        stage('Docker Image Scanning by Trivy') {
             steps {
                 echo 'Scanning Docker Image with Trivy...'
                 sh 'trivy image nishantr/bookmyplan:latest'
+                echo 'Docker Image Scanning Completed!'
+            }
+        }
+*/
+        stage('Docker Image Scanning') {
+            steps {
+                echo 'Scanning Docker Image with Trivy...'
+                // env.WORKSPACE is a built-in Jenkins variable for your job's directory
+                sh "export TMPDIR=${env.WORKSPACE} && trivy image nishantr/bookmyplan:latest"
                 echo 'Docker Image Scanning Completed!'
             }
         }
@@ -81,7 +90,7 @@ pipeline {
             }
         }
 */
-/*        stage('Push Docker Image to Amazon ECR') {
+       stage('Push Docker Image to Amazon ECR') {
             steps {
                 script {
                     // Ensure the URL matches your ECR registry exactly and demodockerrepo1 is the name of the repo in the AWS ECR
@@ -95,9 +104,9 @@ pipeline {
                     }
                 }
             }
-      } */
-
-        stage('Uploading Docker Image to Nexus') {
+      }
+/*
+       stage('Uploading Docker Image to Nexus') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexuscred', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
@@ -112,7 +121,7 @@ pipeline {
                 }
             }
         }
-
+*/
         stage('Clean Up Local Docker Images') {
             steps {
                 echo 'Cleaning Up Local Docker Images...'
