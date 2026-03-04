@@ -81,7 +81,7 @@ pipeline {
             }
         }
 */
-        stage('Push Docker Image to Amazon ECR') {
+/*        stage('Push Docker Image to Amazon ECR') {
             steps {
                 script {
                     // Ensure the URL matches your ECR registry exactly and demodockerrepo1 is the name of the repo in the AWS ECR
@@ -95,9 +95,9 @@ pipeline {
                     }
                 }
             }
-        }
+*/      }
 
-        stage('Upload Docker Image to Nexus') {
+        stage('Uploading Docker Image to Nexus') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexuscred', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
