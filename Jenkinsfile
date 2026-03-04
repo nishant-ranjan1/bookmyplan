@@ -84,14 +84,14 @@ pipeline {
             }
         }
 */
-        stage('Docker Image Scanning') {
+        stage('Docker Image Scanning using Trivy') {
             steps {
                 echo 'Scanning Docker Image with Trivy...'
                 // env.WORKSPACE is a built-in Jenkins variable for your job's directory
                 //sh "export TMPDIR=${env.WORKSPACE} && trivy image nishantr/bookmyplan:latest"
-                sh "trivy clean --all" // Clears all local vulnerability DBs and layer caches
+                //sh "trivy clean --all" // Clears all local vulnerability DBs and layer caches
                 //Jenkins WORKSPACE dir will be used as temp and java db update will be skipped
-                sh "export TMPDIR=${env.WORKSPACE} && trivy image --skip-java-db-update --scanners vuln nishantr/bookmyplan:latest"
+                //sh "export TMPDIR=${env.WORKSPACE} && trivy image --skip-java-db-update --scanners vuln nishantr/bookmyplan:latest"
                 //sh "export TMPDIR=${env.WORKSPACE} && trivy image --parallel 1 nishantr/bookmyplan:latest"
                 echo 'Docker Image Scanning Completed!'
             }
