@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo 'Building Docker Image and Tagging...'
                 // Fixed: Combined tags into one build command for efficiency
-                // Creating two images with tags, // Creating two images with tags - bookmyplan:latest is for dockerhub and 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest is for AWS ECR
+                // Creating three images with tags, // Creating two images with tags - bookmyplan:latest is for dockerhub and 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest is for AWS ECR
                 // bookmyplan is name of the repo created on dockerhub and demodockerrepo1 is the name of the repo created on AWS ECR
                 sh "docker build -t nishantr/bookmyplan:latest -t bookmyplan:latest -t 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest ." // 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1 is Repository URI under summary in AWS ECR
                 echo 'Docker Image Build Completed!'
@@ -49,6 +49,7 @@ pipeline {
         stage('Docker Image Scanning') {
             steps {
                 echo 'Scanning Docker Image with Trivy...'
+                sh 'trivy image nishantr/bookmyplan:latest'
                 echo 'Docker Image Scanning Completed!'
             }
         }
