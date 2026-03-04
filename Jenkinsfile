@@ -94,7 +94,7 @@ pipeline {
                 //Jenkins WORKSPACE dir will be used as temp and java db update will be skipped
                 //sh "export TMPDIR=${env.WORKSPACE} && trivy image --skip-java-db-update --scanners vuln nishantr/bookmyplan:latest"
                 //sh "export TMPDIR=${env.WORKSPACE} && trivy image --parallel 1 nishantr/bookmyplan:latest"
-                echo 'Docker Image Scanning Completed!'
+                echo 'Docker Image Scanning Completed!!'
             }
         }
 
@@ -113,7 +113,8 @@ pipeline {
             }
         }
 
-/*        stage('Pushing to Docker Hub') {
+/*
+       stage('Pushing to Docker Hub') {
             steps {
                 script {
                     // This block handles login and cleanup automatically
@@ -124,7 +125,7 @@ pipeline {
                 }
             }
         }
-*/
+
        stage('Push Docker Image to Amazon ECR') {
             steps {
                 script {
@@ -139,7 +140,23 @@ pipeline {
                     }
                 }
             }
-      }
+       }
+*/
+
+        stage('Push Docker Image to Amazon ECR') {
+            steps {
+                script {
+                    // Ensure the URL matches your ECR registry exactly and demodockerrepo1 is the name of the repo in the AWS ECR
+                    // This comes from Amazon ECR Plugin and AWS credentials pluginns
+                    // ecr-credentials is the id used in the jenkins credentials for AWS  ECR credentials
+                    // We need to create a role with admin access and attach it to the jenkins master instance and an IAM user with EC2FullAccess whose access key and secret access key will be needed in the jenkins credentials
+                    withDockerRegistry([credentialsId: 'ecr:ap-south-1:ecr-credentials', url: "https://306989527369.dkr.ecr.ap-south-1.amazonaws.com"]) {
+                        sh 'docker push 306989527369.dkr.ecr.ap-south-1.amazonaws.com/demodockerrepo1:latest'
+                    }
+                }
+            }
+        }
+
 /*
        stage('Uploading Docker Image to Nexus') {
             steps {
