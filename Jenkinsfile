@@ -26,6 +26,21 @@ pipeline {
             }
         }
 
+       stage('SonarQube Code Quality') {
+            environment {
+                scannerHome = tool 'qube'
+            }
+            steps {
+                echo 'Running SonarQube scan...'
+                withSonarQubeEnv('sonar-server') {
+                    sh 'mvn sonar:sonar'
+                }
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('Code Package') {
             steps {
                 echo 'Creating JAR Artifact...'
@@ -34,8 +49,23 @@ pipeline {
                 echo 'Artifact Created Successfully!'
             }
         }
-
-        stage('Build & Tag Docker Image') {
+/*
+        stage('Sonarqube') {
+            environment {
+                scannerHome = tool 'qube'
+            }
+            steps {
+                withSonarQubeEnv('sonar-server') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                    sh 'mvn sonar:sonar'
+                }
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+*/
+         stage('Build & Tag Docker Image') {
             steps {
                 echo 'Building Docker Image and Tagging...'
                 // Fixed: Combined tags into one build command for efficiency
@@ -60,6 +90,7 @@ pipeline {
                 // env.WORKSPACE is a built-in Jenkins variable for your job's directory
                 //sh "export TMPDIR=${env.WORKSPACE} && trivy image nishantr/bookmyplan:latest"
                 sh "trivy clean --all" // Clears all local vulnerability DBs and layer caches
+                //Jenkins WORKSPACE dir will be used as temp and java db update will be skipped
                 sh "export TMPDIR=${env.WORKSPACE} && trivy image --skip-java-db-update --scanners vuln nishantr/bookmyplan:latest"
                 //sh "export TMPDIR=${env.WORKSPACE} && trivy image --parallel 1 nishantr/bookmyplan:latest"
                 echo 'Docker Image Scanning Completed!'
