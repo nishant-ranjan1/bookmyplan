@@ -95,7 +95,7 @@ pipeline {
                     }
                 }
             }
-*/      }
+      } */
 
         stage('Uploading Docker Image to Nexus') {
             steps {
